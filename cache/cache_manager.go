@@ -54,7 +54,7 @@ func (cm *CacheManager) Get(w http.ResponseWriter, r *http.Request) {
 		message := fmt.Sprintf("Key %s not found", key)
 		http.Error(w, message, http.StatusNotFound)
 	} else {
-		fmt.Fprintf(w, *value)
+		fmt.Fprintf(w, "DataNode %s: Get key=%s, value=%s\n", node.id, key, *value)
 	}
 }
 
