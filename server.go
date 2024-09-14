@@ -4,8 +4,11 @@ import (
 	"go-cache/cache"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
+
+var logger = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 func main() {
 
@@ -15,7 +18,7 @@ func main() {
 	http.HandleFunc("/cache/set", cacheManager.Set)
 	port := ":8080"
 
-	log.Printf("Starting server on port %s at %s", port, time.Now().Format(time.RFC3339))
+	logger.Printf("Starting server on port %s at %s", port, time.Now().Format(time.RFC3339))
 
 	err := http.ListenAndServe(port, nil)
 	if err != nil {

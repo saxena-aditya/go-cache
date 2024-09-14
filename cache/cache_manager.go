@@ -3,11 +3,15 @@ package cache
 import (
 	"fmt"
 	"hash/fnv"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 	"time"
 )
+
+var logger = log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 type CacheManager struct {
 	dataNodes     []*DataNode   // list of all data nodes
@@ -70,10 +74,10 @@ func (cm *CacheManager) periodicCleanup() {
 					// Publish an invalidation message for the node
 					message := Message{
 						msgType: "invalidate",
-						body:    elem.Value.(*CacheNode).value,
+						body:    elem.Value.(*CacheNode).key,
 					}
 					cm.pubSub.Publish(fmt.Sprintf("evict-%s", cm.getNode(key).id), message)
-					fmt.Printf("CacheManager: Published eviction for key=%s\n", key)
+					logger.Printf("CacheManager: Published eviction for key=%s\n", key)
 				}
 			}
 		}

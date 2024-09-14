@@ -74,7 +74,7 @@ func (dn *DataNode) Set(key string, value string) {
 	}
 	elem := dn.usageList.PushFront(node)
 	dn.store[key] = elem
-	fmt.Printf("DataNode %s: Set key=%s, value=%s\n", dn.id, key, value)
+	logger.Printf("DataNode %s: Set key=%s, value=%s\n", dn.id, key, value)
 
 }
 
@@ -103,22 +103,22 @@ func (dn *DataNode) evict() {
 		dn.usageList.Remove(elem)
 		node := elem.Value.(*CacheNode)
 		delete(dn.store, node.key)
-		fmt.Printf("DataNode %s: Evicted key=%s\n", dn.id, node.key)
+		logger.Printf("DataNode %s: Evicted key=%s\n", dn.id, node.key)
 	}
 }
 
 // listens for `invalidate` messages from nodes_manager to invalidate the cache entries
 func (dn *DataNode) listenForEviction() {
 	for msg := range dn.evictChannel {
-		fmt.Printf("Node: %s - Listened to message: %s, with body: %s\n", dn.id, msg.msgType, msg.body)
+		logger.Printf("Node: %s - Listened to message: %s, with body: %s\n", dn.id, msg.msgType, msg.body)
 		if msg.msgType == "invalidate" {
 			storeKeyLock := dn.getStoreKeyLock(msg.body)
 			storeKeyLock.Lock()
 			for key, elem := range dn.store {
-				if elem.Value.(*CacheNode).value == msg.body {
+				if elem.Value.(*CacheNode).key == msg.body {
 					dn.usageList.Remove(elem)
 					delete(dn.store, key)
-					fmt.Printf("DataNode %s: Invalidated stale key=%s\n", dn.id, key)
+					logger.Printf("DataNode %s: Invalidated stale key=%s\n", dn.id, key)
 				}
 			}
 			storeKeyLock.Unlock()
