@@ -28,7 +28,6 @@ func (ps *PubSub) Subscribe(topic string) chan Message {
 	return ch
 }
 
-// TODO: `message` can be a struct with details
 func (ps *PubSub) Publish(topic string, message Message) {
 	ps.lock.RLock()
 	defer ps.lock.RUnlock()

@@ -12,32 +12,28 @@ type CacheNode struct {
 	value     string
 	timestamp time.Time
 }
-
 type DataNode struct {
-	id              string
-	store           map[string]*list.Element
-	storeSize       int
-	usageList       *list.List
-	storeLocks      map[string]*sync.RWMutex
-	storeLocksMutex sync.Mutex
-	pubSub          *PubSub
-	evictChannel    chan Message
-	autoEvictTime   int
+	id              string                   // unique id to identify node
+	store           map[string]*list.Element // cache store and key => elem pair
+	storeSize       int                      // maximum store size
+	usageList       *list.List               // tracks accessed cache to maintain least used and most used data
+	storeLocks      map[string]*sync.RWMutex // makes sure mulitple process do no try to operate on same cache key
+	storeLocksMutex sync.Mutex               // makes sure than store locks are not accessed by more than one process at a time
+	pubSub          *PubSub                  // pubSub protocal to listen and send messages
+	evictChannel    chan Message             // channel for listening evit messages
 }
 
 func NewDataNode(id string, cacheSize int, pubSub *PubSub) *DataNode {
 	node := &DataNode{
-		id:            id,
-		store:         make(map[string]*list.Element),
-		storeLocks:    make(map[string]*sync.RWMutex),
-		usageList:     list.New(),
-		storeSize:     cacheSize,
-		pubSub:        pubSub,
-		evictChannel:  pubSub.Subscribe(fmt.Sprintf("evict-%s", id)),
-		autoEvictTime: 10,
+		id:           id,
+		store:        make(map[string]*list.Element),
+		storeLocks:   make(map[string]*sync.RWMutex),
+		usageList:    list.New(),
+		storeSize:    cacheSize,
+		pubSub:       pubSub,
+		evictChannel: pubSub.Subscribe(fmt.Sprintf("evict-%s", id)),
 	}
 
-	//go node.listenEvictionMessages()
 	go node.listenForEviction()
 	return node
 }
@@ -66,6 +62,7 @@ func (dn *DataNode) Set(key string, value string) {
 	}
 
 	if dn.usageList.Len() >= dn.storeSize {
+		// TODO: Use strategy pattern for adding more eviction strategies
 		dn.evict()
 	}
 

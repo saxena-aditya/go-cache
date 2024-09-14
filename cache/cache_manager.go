@@ -10,11 +10,11 @@ import (
 )
 
 type CacheManager struct {
-	dataNodes     []*DataNode
-	nodeCount     int
-	pubSub        *PubSub
-	lock          sync.RWMutex
-	autoEvictTime time.Duration
+	dataNodes     []*DataNode   // list of all data nodes
+	nodeCount     int           // count of attached nodes
+	pubSub        *PubSub       // pubSub protocol to send and listen messages
+	lock          sync.RWMutex  // makes sure no two process can operate on same object
+	autoEvictTime time.Duration // cleans cache after this interval
 }
 
 func NewCacheManager(nodeCount int, autoEvictTime time.Duration) *CacheManager {
@@ -42,7 +42,7 @@ func (cm *CacheManager) Set(w http.ResponseWriter, r *http.Request) {
 	node := cm.getNode(key)
 	node.Set(key, value)
 	fmt.Fprintf(w, "Set key=%s, value=%s\n", key, value)
-	// TODO: What if set in datanode fails
+	// TODO: handle error while setting cache
 }
 
 func (cm *CacheManager) Get(w http.ResponseWriter, r *http.Request) {

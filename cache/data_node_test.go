@@ -13,16 +13,13 @@ func TestDataNode_SetAndGet(t *testing.T) {
 	pubSub := NewPubSub()
 	dataNode := NewDataNode("node1", 5, pubSub)
 
-	// Set a value in the cache
 	dataNode.Set("key1", "value1")
 
-	// Try to get the value
 	value := dataNode.Get("key1")
 	if value == nil || *value != "value1" {
 		t.Errorf("Expected 'value1', got %v", value)
 	}
 
-	// Try to get a non-existent key
 	value = dataNode.Get("nonexistent")
 	if value != nil {
 		t.Errorf("Expected nil for non-existent key, got %v", *value)
