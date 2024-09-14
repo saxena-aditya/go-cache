@@ -1,19 +1,28 @@
 package main
 
 import (
-	"fmt"
+	"go-cache/cache"
 	"log"
 	"net/http"
+	"time"
 )
 
-func getKey(w http.ResponseWriter, r *http.Request) { return }
-func setKey(w http.ResponseWriter, r *http.Request) { return }
-
 func main() {
-	fmt.Println("Hello Server")
 
-	http.HandleFunc("/cache/get", getKey)
-	http.HandleFunc("/cache/set", setKey)
+	cacheManager := cache.NewCacheManager(3)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/cache/get", cacheManager.Get)
+	http.HandleFunc("/cache/set", cacheManager.Set)
+	// Define the port
+	port := ":8080"
+
+	// Log server start message
+	log.Printf("Starting server on port %s at %s", port, time.Now().Format(time.RFC3339))
+
+	// Start the server and log any errors
+	err := http.ListenAndServe(port, nil)
+	if err != nil {
+		log.Fatalf("Server failed: %s", err)
+	}
+
 }

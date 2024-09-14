@@ -1,4 +1,4 @@
-package main
+package cache
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ func NewDataNode(id string) *DataNode {
 
 func (dn *DataNode) getStoreKeyLock(key string) *sync.RWMutex {
 	dn.storeLocksMutex.Lock()
-	defer dn.storeLocksMutex.Lock()
+	defer dn.storeLocksMutex.Unlock()
 
 	if _, exists := dn.storeLocks[key]; !exists {
 		dn.storeLocks[key] = &sync.RWMutex{}
@@ -36,7 +36,7 @@ func (dn *DataNode) getStoreKeyLock(key string) *sync.RWMutex {
 func (dn *DataNode) Set(key string, value string) {
 	lock := dn.getStoreKeyLock(key)
 	lock.Lock()
-	defer lock.Lock()
+	defer lock.Unlock()
 
 	dn.store[key] = value
 	fmt.Printf("DataNode: %s, SET %s = %s", dn.id, key, value)
@@ -45,7 +45,7 @@ func (dn *DataNode) Set(key string, value string) {
 func (dn *DataNode) Get(key string) *string {
 	lock := dn.getStoreKeyLock(key)
 	lock.Lock()
-	defer lock.Lock()
+	defer lock.Unlock()
 
 	if value, exists := dn.store[key]; exists {
 		return &value
