@@ -54,6 +54,7 @@ func (dn *DataNode) Set(key string, value string) {
 	lock.Lock()
 	defer lock.Unlock()
 
+	// if cache key already exists override the key and update usage tracker
 	if elem, exists := dn.store[key]; exists {
 		dn.usageList.MoveToFront(elem)
 		elem.Value.(*CacheNode).value = value
@@ -82,6 +83,7 @@ func (dn *DataNode) Get(key string) *string {
 	lock.Lock()
 	defer lock.Unlock()
 
+	// find the cache key and move it to front to update the usage tracker
 	if elem, exists := dn.store[key]; exists {
 		dn.usageList.MoveToFront(elem)
 		value := elem.Value.(*CacheNode).value
@@ -90,6 +92,7 @@ func (dn *DataNode) Get(key string) *string {
 	return nil
 }
 
+// Simple evict strategy to remove the least recently used (LRU) cache data
 func (dn *DataNode) evict() {
 	if dn.usageList.Len() == 0 {
 		return
@@ -104,6 +107,7 @@ func (dn *DataNode) evict() {
 	}
 }
 
+// listens for `invalidate` messages from nodes_manager to invalidate the cache entries
 func (dn *DataNode) listenForEviction() {
 	for msg := range dn.evictChannel {
 		fmt.Printf("Node: %s - Listened to message: %s, with body: %s\n", dn.id, msg.msgType, msg.body)
